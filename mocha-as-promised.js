@@ -1,5 +1,24 @@
 (function (mochaAsPromised) {
     "use strict";
+    var path = require("path");
+
+    function findMocha(module) {
+        if (module.children) {
+            for (var i=0; i<module.children.length; i++) {
+                var childModule = module.children[i];
+
+                var suffix = 'mocha'+path.sep+'lib'+path.sep+'mocha.js';
+                if (childModule.id && childModule.id.indexOf(suffix, childModule.id.length - suffix.length) > -1) {
+                    return childModule;
+                }
+
+                var found = findMocha(childModule);
+                if (found && found.exports) {
+                    return found.exports;
+                }
+            }
+        }
+    }
 
     // Module systems magic dance.
 
@@ -12,19 +31,9 @@
             if (!mocha) {
                 if (typeof process === "object" && Object.prototype.toString.call(process) === "[object process]") {
                     // We're in *real* Node.js, not in a browserify-like environment. Do automatic detection logic.
-                    var path = require("path");
-
-                    // `process.argv[1]` is either something like `"/host/package/node_modules/mocha/bin/_mocha`", or
-                    // `"/path/to/global/node_modules/mocha/bin/_mocha"`. Verify that, though:
-                    var lastThreeSegments = process.argv[1].split(path.sep).slice(-3);
-                    if (lastThreeSegments[0] !== "mocha" || lastThreeSegments[1] !== "bin") {
-                        throw new Error("Attempted to automatically plug in to Mocha, but was not running through " +
-                                        "the Mocha test runner. Either run using the Mocha command-line test runner, " +
-                                        "or plug in manually by passing the running Mocha module.");
-                    }
-
-                    var mochaPath = path.resolve(process.argv[1], "../..");
-                    mocha = (require)(mochaPath); // Trick browserify into not complaining.
+    
+                    // find the loaded mocha module
+                    mocha = findMocha(require.main);
                 } else if (typeof Mocha !== "undefined") {
                     // We're in a browserify-like emulation environment. Try the `Mocha` global.
                     mocha = Mocha;
