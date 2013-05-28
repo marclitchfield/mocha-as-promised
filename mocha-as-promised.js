@@ -1,20 +1,20 @@
 (function (mochaAsPromised) {
     "use strict";
+
     var path = require("path");
 
     function findMocha(module) {
+        var suffix = "mocha" + path.sep + "lib" + path.sep + "mocha.js";
+        if (module.id && module.id.indexOf(suffix, module.id.length - suffix.length) > -1
+                && module.exports) {
+            return module.exports;
+        }
+
         if (module.children) {
             for (var i=0; i<module.children.length; i++) {
-                var childModule = module.children[i];
-
-                var suffix = 'mocha'+path.sep+'lib'+path.sep+'mocha.js';
-                if (childModule.id && childModule.id.indexOf(suffix, childModule.id.length - suffix.length) > -1) {
-                    return childModule;
-                }
-
-                var found = findMocha(childModule);
-                if (found && found.exports) {
-                    return found.exports;
+                var found = findMocha(module.children[i]);
+                if (found) {
+                    return found;
                 }
             }
         }
