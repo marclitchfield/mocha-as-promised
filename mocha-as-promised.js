@@ -34,12 +34,16 @@
     
                     // find the loaded mocha module
                     mocha = findMocha(require.main);
+
+                    if (mocha === undefined) {
+                        throw new Error("Attempted to automatically plug in to Mocha, " +
+                            "but could not detect a running Mocha module");
+                    }
+
                 } else if (typeof Mocha !== "undefined") {
                     // We're in a browserify-like emulation environment. Try the `Mocha` global.
                     mocha = Mocha;
-                }
-
-                if (!mocha) {
+                } else {
                     throw new Error("Attempted to automatically plug in to Mocha, but could not detect the " +
                                     "environment. Plug in manually by passing the running Mocha module.");
                 }
