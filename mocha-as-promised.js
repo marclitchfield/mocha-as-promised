@@ -37,7 +37,9 @@
                 } else if (typeof Mocha !== "undefined") {
                     // We're in a browserify-like emulation environment. Try the `Mocha` global.
                     mocha = Mocha;
-                } else {
+                }
+
+                if (!mocha) {
                     throw new Error("Attempted to automatically plug in to Mocha, but could not detect the " +
                                     "environment. Plug in manually by passing the running Mocha module.");
                 }
